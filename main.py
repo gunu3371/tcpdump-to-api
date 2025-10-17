@@ -12,9 +12,8 @@ class TcpdumpParser:
     수동으로 start() 및 stop() 메서드를 호출하여 제어해야 합니다.
     """
     
-    def __init__(self, interface='any'):
-        self.interface = interface
-        self.cmd = ['tcpdump', '-l', '-t', '-q', '-v', '-nn', '-i', self.interface]
+    def __init__(self):
+        self.cmd = ['tcpdump', '-l', '-t', '-q', '-v', '-nn', '-i', "any"]
         
         # 정규표현식
         self.header_regex = re.compile(
@@ -133,7 +132,7 @@ class TcpdumpParser:
 if __name__ == "__main__":
     
     # parser 인스턴스 생성
-    parser = TcpdumpParser(interface='any')
+    parser = TcpdumpParser()
     
     try:
         # 1. 수동으로 start() 호출
