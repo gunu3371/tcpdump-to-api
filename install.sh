@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# 스크립트 실행 중 오류 발생 시 즉시 중단합니다.
+set -e
+set -o pipefail
+
 # ==============================================================================
 # Tcpdump to API 설치 스크립트
 # ==============================================================================
@@ -89,7 +93,7 @@ Group=$(id -gn "$RUN_USER")
 WorkingDirectory=$INSTALL_DIR
 
 # 실행 명령어 (가상 환경의 Python 사용)
-ExecStart=$VENV_DIR/bin/python $INSTALL_DIR/main.py
+ExecStart=$VENV_DIR/bin/python -u $INSTALL_DIR/main.py
 
 # 일반 사용자로 tcpdump를 실행하기 위한 권한 부여
 AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
