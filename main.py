@@ -1,6 +1,10 @@
 import time
 import requests
 import threading
+import os
+import signal
+import queue
+from dotenv import load_dotenv
 from parser import TcpdumpParser
 
 # 파싱된 데이터를 임시 저장할 리스트
@@ -8,13 +12,40 @@ packet_buffer = []
 # 버퍼 접근을 동기화하기 위한 Lock
 buffer_lock = threading.Lock()
 
+
+class GracefulKiller:
+    """
+    SIGINT 및 SIGTERM 신호를 정상적으로 처리하여
+    애플리케이션이 안전하게 종료될 수 있도록 돕는 클래스입니다.
+    """
+
+    kill_now = False
+
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self, *args):
+        """신호가 수신되면 kill_now 플래그를 True로 설정합니다."""
+        print("Graceful shutdown signal received...")
+        self.kill_now = True
+
+
 # 주기적으로 데이터를 POST로 전송하는 함수
-def send_data_periodically(url, interval):
+def send_data_periodically(url, interval, killer):
     """
     지정된 간격(interval)마다 버퍼의 데이터를 POST로 전송합니다.
+    killer.kill_now가 True가 되면 스레드가 종료됩니다.
     """
-    while True:
-        time.sleep(interval)
+    while not killer.kill_now:
+        # killer.kill_now를 더 자주 확인할 수 있도록 sleep을 짧게 분할
+        for _ in range(interval):
+            if killer.kill_now:
+                break
+            time.sleep(1)
+
+        if killer.kill_now:
+            break
 
         # 버퍼에 데이터가 있는지 확인
         if not packet_buffer:
@@ -25,6 +56,9 @@ def send_data_periodically(url, interval):
             data_to_send = list(packet_buffer)
             packet_buffer.clear()
 
+        if not data_to_send:
+            continue
+
         try:
             # POST 요청 전송 (json 형식)
             response = requests.post(url, json=data_to_send)
@@ -33,48 +67,60 @@ def send_data_periodically(url, interval):
 
         except requests.exceptions.RequestException as e:
             print(f"Error sending data: {e}")
-            # 전송 실패 시, 데이터를 다시 버퍼에 추가 (필요에 따라 로직 변경 가능)
+            # 전송 실패 시, 데이터를 다시 버퍼에 추가
             with buffer_lock:
-                packet_buffer.extend(data_to_send)
+                # 데이터를 맨 앞에 추가하여 순서 유지
+                packet_buffer[:0] = data_to_send
 
-
-import os
-from dotenv import load_dotenv
 
 def main():
     """
     메인 함수: TcpdumpParser를 실행하고,
-    파싱된 데이터를 버퍼에 추가합니다.
+    파싱된 데이터를 버퍼에 추가하며, 종료 신호를 처리합니다.
     """
     load_dotenv()  # .env 파일에서 환경 변수 로드
+    killer = GracefulKiller()
 
     parser = TcpdumpParser()
-    post_url = os.getenv("POST_URL")  # 데이터를 전송할 URL
-    send_interval = int(os.getenv("SEND_INTERVAL", 10))  # 전송 주기 (초)
+    post_url = os.getenv("POST_URL", "http://localhost:8000/packets")
+    send_interval = int(os.getenv("SEND_INTERVAL", 10))
 
     # 데이터 전송 스레드 시작
     sender_thread = threading.Thread(
-        target=send_data_periodically, args=(post_url, send_interval), daemon=True
+        target=send_data_periodically,
+        args=(post_url, send_interval, killer),
+        daemon=True,
     )
     sender_thread.start()
 
-    try:
-        print("Starting tcpdump parser...")
-        parser.start()
+    print("Starting tcpdump parser...")
+    parser.start()
 
-        # 파서로부터 패킷을 지속적으로 읽어와 버퍼에 추가
-        for packet in parser.packets():
+    print("Application started. Waiting for packets or shutdown signal.")
+    while not killer.kill_now:
+        try:
+            # 1초 타임아웃으로 큐에서 패킷을 가져옴
+            # 이를 통해 메인 루프가 block되지 않고 killer.kill_now를 확인할 수 있음
+            packet = parser.packet_queue.get(timeout=1)
+            if packet is None:
+                # 파서 스레드가 종료되었음을 의미
+                break
+
             with buffer_lock:
                 packet_buffer.append(packet)
-            # (디버깅용) 수신된 패킷 정보 출력
-            # print(f"Packet captured: {packet}")
 
-    except KeyboardInterrupt:
-        print("
-Stopping parser...")
-    finally:
-        parser.stop()
-        print("Parser stopped.")
+        except queue.Empty:
+            # 1초 동안 패킷이 없으면 예외 발생, 정상적인 상황임
+            continue
+
+    # 종료 신호 수신 후 정리 작업
+    print("Shutting down. Stopping parser...")
+    parser.stop()
+    print("Parser stopped.")
+
+    # 데이터 전송 스레드가 종료될 때까지 잠시 대기
+    sender_thread.join(timeout=2)
+    print("Application finished.")
 
 
 if __name__ == "__main__":
