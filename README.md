@@ -34,7 +34,7 @@ sudo ./install.sh
 설치 스크립트는 다음 작업을 자동으로 수행합니다:
 - 애플리케이션 파일을 `/etc/tcpdump-to-api` 디렉토리에 복사합니다.
 - 서비스 실행을 위한 독립된 Python 가상 환경을 생성하고 라이브러리를 설치합니다.
-- `tcpdump-api.service` 파일을 생성하고 `systemd`에 등록합니다.
+- `tcpdump-to-api.service` 파일을 생성하고 `systemd`에 등록합니다.
 
 ## 설정
 
@@ -51,7 +51,7 @@ SEND_INTERVAL=10
 설정 파일을 수정한 후에는 반드시 서비스를 재시작하여 변경사항을 적용해야 합니다.
 
 ```bash
-sudo systemctl restart tcpdump-api
+sudo systemctl restart tcpdump-to-api
 ```
 
 ## 사용법 (서비스 관리)
@@ -60,22 +60,22 @@ sudo systemctl restart tcpdump-api
 
 - **서비스 시작**
   ```bash
-  sudo systemctl start tcpdump-api
+  sudo systemctl start tcpdump-to-api
   ```
 
 - **서비스 상태 확인**
   ```bash
-  sudo systemctl status tcpdump-api
+  sudo systemctl status tcpdump-to-api
   ```
 
 - **서비스 중지**
   ```bash
-  sudo systemctl stop tcpdump-api
+  sudo systemctl stop tcpdump-to-api
   ```
 
 - **실시간 로그 확인**
   ```bash
-  sudo journalctl -u tcpdump-api -f
+  sudo journalctl -u tcpdump-to-api -f
   ```
 
 ## 제거 방법

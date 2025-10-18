@@ -15,7 +15,7 @@ set -o pipefail
 
 # --- 변수 정의 ---
 INSTALL_DIR="/etc/tcpdump-to-api"
-SERVICE_NAME="tcpdump-api"
+SERVICE_NAME="tcpdump-to-api"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
 
 # --- 스크립트 시작 ---

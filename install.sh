@@ -22,7 +22,7 @@ INSTALL_DIR="/etc/tcpdump-to-api"
 # Python 가상 환경 디렉토리
 VENV_DIR="$INSTALL_DIR/.venv"
 # 서비스 이름
-SERVICE_NAME="tcpdump-api"
+SERVICE_NAME="tcpdump-to-api"
 # systemd 서비스 파일 경로
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
 # 서비스를 실행할 사용자 (sudo를 실행한 사용자)
