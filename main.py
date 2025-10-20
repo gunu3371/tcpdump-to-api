@@ -56,6 +56,7 @@ def send_data_periodically(url, api_key, killer):
         # Lock을 사용하여 버퍼의 데이터를 안전하게 복사하고 비움
         with buffer_lock:
             data_to_send_bak = []
+            data_to_send_chunk = []
             data_to_send = list(packet_buffer)
             packet_buffer.clear()
 
@@ -63,11 +64,9 @@ def send_data_periodically(url, api_key, killer):
             continue
         s = None
         try:
-            data_to_send_bak = deepcopy(data_to_send)
             s = requests.Session()
             s.headers.update({"ApiKey": str(api_key)})
             while len(data_to_send) > 0:
-                data_to_send_chunk = []
                 if len(data_to_send) > 500:
                     for _ in range(500):
                         data_to_send_chunk.append(data_to_send.pop(0))
@@ -102,12 +101,15 @@ def send_data_periodically(url, api_key, killer):
                 )
                 response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
                 count["packets"] += len(data_to_send_chunk)
+                data_to_send_chunk = []
         except requests.exceptions.RequestException as e:
             print(f"Error sending data: {e}")
+            data_to_send_bak = deepcopy(data_to_send)
+            data_to_send_bak.extend(deepcopy(data_to_send_chunk))
             # 전송 실패 시, 데이터를 다시 버퍼에 추가
             with buffer_lock:
                 # 데이터를 맨 앞에 추가하여 순서 유지
-                packet_buffer[:0] = data_to_send_bak
+                packet_buffer[:0] = deepcopy(data_to_send_bak)
         finally:
             if s:
                 s.close()
