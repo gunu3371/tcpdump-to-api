@@ -82,7 +82,7 @@ def main():
     killer = GracefulKiller()
 
     parser = TcpdumpParser()
-    post_url = os.getenv("POST_URL", "http://localhost:8000/packets")
+    post_url = os.getenv("POST_URL")
     send_interval = int(os.getenv("SEND_INTERVAL", 10))
 
     # 데이터 전송 스레드 시작
