@@ -67,8 +67,8 @@ def send_data_periodically(url, api_key, killer):
             s = requests.Session()
             s.headers.update({"ApiKey": str(api_key)})
             while len(data_to_send) > 0:
-                if len(data_to_send) > 250:
-                    for _ in range(250):
+                if len(data_to_send) > 2000:
+                    for _ in range(2000):
                         data_to_send_chunk.append(data_to_send.pop(0))
                 else:
                     data_to_send_chunk = data_to_send
