@@ -26,7 +26,6 @@ SERVICE_NAME="tcpdump-to-api"
 # systemd 서비스 파일 경로
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
 # 서비스를 실행할 사용자 (sudo를 실행한 사용자)
-RUN_USER=${SUDO_USER:-$(whoami)}
 
 
 # --- 스크립트 시작 ---
@@ -87,8 +86,8 @@ After=network-online.target
 
 [Service]
 # 서비스를 실행할 사용자 및 그룹
-User=$RUN_USER
-Group=$(id -gn "$RUN_USER")
+User=root
+Group=root
 
 # 작업 디렉토리
 WorkingDirectory=$INSTALL_DIR
@@ -101,9 +100,6 @@ WorkingDirectory=$INSTALL_DIR
 
 # 환경 변수 파일 로드
 EnvironmentFile=$INSTALL_DIR/.env
-
-# 일반 사용자로 tcpdump를 실행하기 위한 권한 부여
-AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
 
 # 서비스가 실패하면 5초 후 다시 시작
 Restart=on-failure
