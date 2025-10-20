@@ -94,7 +94,7 @@ def send_data_periodically(url, api_key, killer):
                     transformed = {key_map.get(k, k): v for k, v in i.items()}
                     transformed_chunk.append(transformed)
                 data_to_send_chunk = transformed_chunk
-                del(transformed_chunk)
+                del transformed_chunk
 
                 response = s.post(
                     url,
@@ -113,6 +113,7 @@ def send_data_periodically(url, api_key, killer):
             if s:
                 s.close()
                 s = None
+
 
 def main():
     """
