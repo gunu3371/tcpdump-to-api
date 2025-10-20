@@ -61,7 +61,7 @@ def send_data_periodically(url, api_key, interval, killer):
 
         try:
             # POST 요청 전송 (json 형식)
-            response = requests.post(url, json=data_to_send, headers={"key": api_key})
+            response = requests.post(url, data=data_to_send, headers={"key": api_key})
             response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
             print(f"Successfully sent {len(data_to_send)} packets.")
 

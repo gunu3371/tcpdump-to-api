@@ -74,6 +74,7 @@ python3 -m venv "$VENV_DIR"
 # 생성된 가상 환경의 pip를 사용하여 라이브러리 설치
 "$VENV_DIR/bin/pip" install -r "$INSTALL_DIR/requirements.txt"
 
+rm "$INSTALL_DIR/requirements.txt"  # 설치 후 requirements.txt 삭제
 
 # 5. systemd 서비스 파일 생성
 echo "systemd 서비스 파일을 생성합니다..."
