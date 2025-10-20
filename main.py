@@ -61,7 +61,7 @@ def send_data_periodically(url, api_key, killer):
 
         if not data_to_send:
             continue
-
+        s = None
         try:
             data_to_send_bak = deepcopy(data_to_send)
             s = requests.Session()
@@ -100,14 +100,16 @@ def send_data_periodically(url, api_key, killer):
                 )
                 response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
                 count["packets"] += len(data_to_send_chunk)
-
         except requests.exceptions.RequestException as e:
             print(f"Error sending data: {e}")
             # 전송 실패 시, 데이터를 다시 버퍼에 추가
             with buffer_lock:
                 # 데이터를 맨 앞에 추가하여 순서 유지
                 packet_buffer[:0] = data_to_send_bak
-
+        finally:
+            if s:
+                s.close()
+                s = None
 
 def main():
     """
