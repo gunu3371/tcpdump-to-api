@@ -94,7 +94,7 @@ def send_data_periodically(url, api_key, killer):
                 response = requests.post(
                     url,
                     json=data_to_send_chunk,
-                    headers={"api-key": str(api_key)},
+                    headers={"ApiKey": str(api_key)},
                     timeout=10,
                 )
                 response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
