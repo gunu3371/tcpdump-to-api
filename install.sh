@@ -95,6 +95,9 @@ WorkingDirectory=$INSTALL_DIR
 # 실행 명령어 (가상 환경의 Python 사용)
 ExecStart=$VENV_DIR/bin/python -u $INSTALL_DIR/main.py
 
+# 작업 디렉토리
+WorkingDirectory=$INSTALL_DIR
+
 # 환경 변수 파일 로드
 EnvironmentFile=$INSTALL_DIR/.env
 
