@@ -68,13 +68,16 @@ def send_data_periodically(url, api_key, killer):
             s.headers.update({"ApiKey": str(api_key)})
             while len(data_to_send) > 0:
                 data_to_send_chunk = []
-                if len(data_to_send) > 100:
-                    for _ in range(100):
+                if len(data_to_send) > 500:
+                    for _ in range(500):
                         data_to_send_chunk.append(data_to_send.pop(0))
                 else:
                     data_to_send_chunk = data_to_send
                     data_to_send = []
-                # 각 패킷의 키를 축약형으로 변환
+
+                if len(data_to_send) > 10000:
+                    print("left packets:", len(data_to_send))
+
                 key_map = {
                     "interface": "i",
                     "direction": "d",
