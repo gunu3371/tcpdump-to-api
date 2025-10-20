@@ -64,6 +64,8 @@ def send_data_periodically(url, api_key, killer):
 
         try:
             data_to_send_bak = deepcopy(data_to_send)
+            s = requests.Session()
+            s.headers.update({"ApiKey": str(api_key)})
             while len(data_to_send) > 0:
                 data_to_send_chunk = []
                 if len(data_to_send) > 100:
@@ -91,10 +93,9 @@ def send_data_periodically(url, api_key, killer):
                 data_to_send_chunk = transformed_chunk
                 del(transformed_chunk)
 
-                response = requests.post(
+                response = s.post(
                     url,
                     json=data_to_send_chunk,
-                    headers={"ApiKey": str(api_key)},
                     timeout=10,
                 )
                 response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
