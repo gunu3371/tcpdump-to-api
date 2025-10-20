@@ -38,7 +38,13 @@ def send_data_periodically(url, api_key, killer):
     지정된 간격(interval)마다 버퍼의 데이터를 POST로 전송합니다.
     killer.kill_now가 True가 되면 스레드가 종료됩니다.
     """
+    count = {"seconds": 0, "packets": 0}
     while not killer.kill_now:
+        count["seconds"] += 1
+        if count["seconds"] > 60:
+            print(f"Total packets sent: {count['packets']}")
+            count["seconds"] = 0
+
         if killer.kill_now:
             break
         time.sleep(1)
@@ -66,10 +72,33 @@ def send_data_periodically(url, api_key, killer):
                 else:
                     data_to_send_chunk = data_to_send
                     data_to_send = []
-                response = requests.post(url, json=data_to_send_chunk, headers={"api_key": str(api_key)}, timeout=10)
+                # 각 패킷의 키를 축약형으로 변환
+                key_map = {
+                    "interface": "i",
+                    "direction": "d",
+                    "proto": "p",
+                    "length": "l",
+                    "src_ip": "si",
+                    "src_port": "sp",
+                    "dst_ip": "di",
+                    "dst_port": "dp",
+                }
+
+                transformed_chunk = []
+                for i in data_to_send_chunk:
+                    transformed = {key_map.get(k, k): v for k, v in i.items()}
+                    transformed_chunk.append(transformed)
+                data_to_send_chunk = transformed_chunk
+                del(transformed_chunk)
+
+                response = requests.post(
+                    url,
+                    json=data_to_send_chunk,
+                    headers={"api-key": str(api_key)},
+                    timeout=10,
+                )
                 response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
-                print(f"sent {len(data_to_send_chunk)} packets metric.")
-                print("left packets to send:", len(data_to_send))
+                count["packets"] += len(data_to_send_chunk)
 
         except requests.exceptions.RequestException as e:
             print(f"Error sending data: {e}")
