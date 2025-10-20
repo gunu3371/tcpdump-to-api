@@ -32,20 +32,15 @@ class GracefulKiller:
 
 
 # 주기적으로 데이터를 POST로 전송하는 함수
-def send_data_periodically(url, api_key, interval, killer):
+def send_data_periodically(url, api_key, killer):
     """
     지정된 간격(interval)마다 버퍼의 데이터를 POST로 전송합니다.
     killer.kill_now가 True가 되면 스레드가 종료됩니다.
     """
     while not killer.kill_now:
-        # killer.kill_now를 더 자주 확인할 수 있도록 sleep을 짧게 분할
-        for _ in range(interval):
-            if killer.kill_now:
-                break
-            time.sleep(1)
-
         if killer.kill_now:
             break
+        time.sleep(1)
 
         # 버퍼에 데이터가 있는지 확인
         if not packet_buffer:
@@ -71,6 +66,7 @@ def send_data_periodically(url, api_key, interval, killer):
                 response = requests.post(url, json=data_to_send_chunk, headers={"api_key": api_key}, timeout=10)
                 response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
                 print(f"sent {len(data_to_send_chunk)} packets metric.")
+                print("left packets to send:", len(data_to_send))
 
         except requests.exceptions.RequestException as e:
             print(f"Error sending data: {e}")
@@ -91,12 +87,11 @@ def main():
     parser = TcpdumpParser()
     post_url = os.getenv("POST_URL")
     api_key = os.getenv("API_KEY")
-    send_interval = int(os.getenv("SEND_INTERVAL", 10))
 
     # 데이터 전송 스레드 시작
     sender_thread = threading.Thread(
         target=send_data_periodically,
-        args=(post_url, api_key, send_interval, killer),
+        args=(post_url, api_key, killer),
         daemon=True,
     )
     sender_thread.start()
