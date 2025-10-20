@@ -60,10 +60,17 @@ def send_data_periodically(url, api_key, interval, killer):
             continue
 
         try:
-            # POST 요청 전송 (json 형식)
-            response = requests.post(url, data=data_to_send, headers={"key": api_key})
-            response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
-            print(f"Successfully sent {len(data_to_send)} packets.")
+            while len(data_to_send) > 0:
+                data_to_send_chunk = []
+                if len(data_to_send) > 100:
+                    for _ in range(100):
+                        data_to_send_chunk.append(data_to_send.pop(0))
+                else:
+                    data_to_send_chunk = data_to_send
+                    data_to_send = []
+                response = requests.post(url, json=data_to_send_chunk, headers={"api_key": api_key}, timeout=10)
+                response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
+                print(f"sent {len(data_to_send_chunk)} packets metric.")
 
         except requests.exceptions.RequestException as e:
             print(f"Error sending data: {e}")
