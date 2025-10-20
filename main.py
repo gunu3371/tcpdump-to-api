@@ -6,6 +6,7 @@ import signal
 import queue
 from dotenv import load_dotenv
 from parser import TcpdumpParser
+from copy import deepcopy
 
 # 파싱된 데이터를 임시 저장할 리스트
 packet_buffer = []
@@ -48,6 +49,7 @@ def send_data_periodically(url, api_key, killer):
 
         # Lock을 사용하여 버퍼의 데이터를 안전하게 복사하고 비움
         with buffer_lock:
+            data_to_send_bak = []
             data_to_send = list(packet_buffer)
             packet_buffer.clear()
 
@@ -55,6 +57,7 @@ def send_data_periodically(url, api_key, killer):
             continue
 
         try:
+            data_to_send_bak = deepcopy(data_to_send)
             while len(data_to_send) > 0:
                 data_to_send_chunk = []
                 if len(data_to_send) > 100:
@@ -73,7 +76,7 @@ def send_data_periodically(url, api_key, killer):
             # 전송 실패 시, 데이터를 다시 버퍼에 추가
             with buffer_lock:
                 # 데이터를 맨 앞에 추가하여 순서 유지
-                packet_buffer[:0] = data_to_send
+                packet_buffer[:0] = data_to_send_bak
 
 
 def main():
