@@ -66,7 +66,7 @@ def send_data_periodically(url, api_key, killer):
                 else:
                     data_to_send_chunk = data_to_send
                     data_to_send = []
-                response = requests.post(url, json=data_to_send_chunk, headers={"api_key": api_key}, timeout=10)
+                response = requests.post(url, json=data_to_send_chunk, headers={"api_key": str(api_key)}, timeout=10)
                 response.raise_for_status()  # 2xx 상태 코드가 아닐 경우 예외 발생
                 print(f"sent {len(data_to_send_chunk)} packets metric.")
                 print("left packets to send:", len(data_to_send))
