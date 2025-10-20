@@ -95,6 +95,9 @@ WorkingDirectory=$INSTALL_DIR
 # 실행 명령어 (가상 환경의 Python 사용)
 ExecStart=$VENV_DIR/bin/python -u $INSTALL_DIR/main.py
 
+# 환경 변수 파일 로드
+EnvironmentFile=$INSTALL_DIR/.env
+
 # 일반 사용자로 tcpdump를 실행하기 위한 권한 부여
 AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
 

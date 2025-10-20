@@ -85,7 +85,6 @@ class TcpdumpParser:
                         packet_info["dst_port"] = packet_info.get("dst_port", None)
 
                         self.packet_queue.put(packet_info)
-                        print(f"Parsed packet: {packet_info}")
                         packet_info = {}
 
         except ValueError:
