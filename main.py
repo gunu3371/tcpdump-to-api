@@ -44,6 +44,7 @@ def send_data_periodically(url, api_key, killer):
         if count["seconds"] > 60:
             print(f"Total packets sent: {count['packets']}")
             count["seconds"] = 0
+            count["packets"] = 0
 
         if killer.kill_now:
             break
